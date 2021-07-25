@@ -1,0 +1,33 @@
+{
+    "name": "bfg/embedded-call",
+    "description": "",
+    "type": "bfg-app",
+    "keywords": ["laravel", "extension", "embedded-call"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "bfg"
+        }
+    ],
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.0.0",
+        "bfg/installer": "*"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "Bfg\\EmbeddedCall\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bfg\\EmbeddedCall\\ServiceProvider"
+            ]
+        }
+    }
+}
