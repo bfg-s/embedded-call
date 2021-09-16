@@ -40,7 +40,7 @@ if (! function_exists("resulted_event") ) {
 
         if (count($event->result)) {
             $event->result = array_filter($event->result, fn ($i) => !!$i);
-            $event->result = $event->result[array_key_last($event->result)];
+            $event->result = $event->result[array_key_last($event->result)] ?? null;
             $event->result = is_object($event->result) ? $event->result : (object)\Arr::wrap($event->result);
         }
 

@@ -1,6 +1,6 @@
 {
     "name": "bfg/embedded-call",
-    "description": "",
+    "description": "API with closing functions",
     "type": "bfg-app",
     "keywords": ["laravel", "extension", "embedded-call"],
     "license": "MIT",
