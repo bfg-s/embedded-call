@@ -5,7 +5,7 @@ namespace Bfg\EmbeddedCall;
 use Bfg\Installer\Providers\InstalledProvider;
 
 /**
- * Class ServiceProvider
+ * Class ServiceProvider.
  * @package Bfg\EmbeddedCall
  */
 class ServiceProvider extends InstalledProvider
@@ -36,4 +36,3 @@ class ServiceProvider extends InstalledProvider
         //
     }
 }
-

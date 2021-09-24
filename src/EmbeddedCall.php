@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Class EmbeddedCall
+ * Class EmbeddedCall.
  * @package Bfg\EmbeddedCall
  */
 class EmbeddedCall
@@ -48,7 +48,7 @@ class EmbeddedCall
     /**
      * @var array
      */
-    protected $route_params  = [];
+    protected $route_params = [];
 
     /**
      * @var \Closure
@@ -79,45 +79,35 @@ class EmbeddedCall
         $this->throw_event = $throw_event;
 
         if (request()->route()) {
-
             $this->route_params = request()->route()->parameters();
         }
 
         if ($subject instanceof \Closure) {
-
             $this->subject = $subject;
 
             $this->mode = 0;
-
-        } else if (is_array($subject) && isset($subject[0]) && isset($subject[1])) {
-
+        } elseif (is_array($subject) && isset($subject[0]) && isset($subject[1])) {
             $this->subject = [
                 is_string($subject[0]) ? app($subject[0]) : $subject[0],
-                $subject[1]
+                $subject[1],
             ];
 
             $this->mode = 1;
-
-        } else if (is_object($subject)) {
-
+        } elseif (is_object($subject)) {
             $this->subject = [
                 $subject,
-                '__invoke'
+                '__invoke',
             ];
 
             $this->mode = 1;
-
-        } else if (is_string($subject)) {
-
+        } elseif (is_string($subject)) {
             $this->subject = [
                 app($subject),
-                '__invoke'
+                '__invoke',
             ];
 
             $this->mode = 1;
-
         } else {
-
             $this->throw(new \Exception('Invalid subject of call'));
         }
 
@@ -127,37 +117,32 @@ class EmbeddedCall
     }
 
     /**
-     * Make reflection of the call data
+     * Make reflection of the call data.
      * @throws \Throwable
      */
-    protected function makeRef () {
-
+    protected function makeRef()
+    {
         if ($this->mode === 0) {
-
             try {
                 $this->ref = new \ReflectionFunction($this->subject);
             } catch (\Throwable $throwable) {
                 $this->throw($throwable);
             }
-
-        } else if ($this->mode === 1) {
-
+        } elseif ($this->mode === 1) {
             try {
                 $this->ref = (new \ReflectionClass($this->subject[0]))->getMethod($this->subject[1]);
             } catch (\Throwable $throwable) {
                 $this->throw($throwable);
             }
-
         } else {
-
             $this->throw(new \Exception('Wrong mode for reflection'));
         }
 
         $this->catchAttributes();
     }
 
-    protected function catchAttributes () {
-
+    protected function catchAttributes()
+    {
         $attributes = $this->ref->getAttributes(Action::class);
 
         foreach ($attributes as $attribute) {
@@ -167,30 +152,26 @@ class EmbeddedCall
                 continue;
             }
 
-            if (!$attributeClass instanceof Action) {
+            if (! $attributeClass instanceof Action) {
                 continue;
             }
 
             if ($attributeClass->request) {
-
                 $this->arguments[$attributeClass->request] = app($attributeClass->request);
             }
 
             if ($attributeClass->event && app('events')->hasListeners($attributeClass->event)) {
-
                 $this->arguments[$attributeClass->request] = app($attributeClass->event);
 
                 $this->event_result = resulted_event($this->arguments[$attributeClass->request]);
             }
 
-            $make_params = !!$this->event_result ? ['resource' => $this->event_result] : [];
+            $make_params = (bool) $this->event_result ? ['resource' => $this->event_result] : [];
 
             if ($attributeClass->resource) {
-
                 $this->arguments[$attributeClass->resource] = app($attributeClass->resource, $make_params);
 
                 if ($this->arguments[$attributeClass->resource] instanceof JsonResource) {
-
                     $this->resource = $this->arguments[$attributeClass->resource];
                 }
             }
@@ -198,16 +179,21 @@ class EmbeddedCall
     }
 
     /**
-     * Make reflection parameters
+     * Make reflection parameters.
      */
-    protected function makeParameters () {
-
+    protected function makeParameters()
+    {
+        //if ($this->ref->getParameters()) dd($this->ref->getParameters());
         foreach ($this->ref->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            if ($type instanceof \ReflectionUnionType) {
+                $type = $type->getTypes()[0];
+            }
 
             list($class, $type, $nullable) = $parameter->hasType() ? (
-                !$parameter->getType()->isBuiltin() ?
-                    [$parameter->getType()->getName(), false, $parameter->getType()->allowsNull()] :
-                    [false, $parameter->getType()->getName(), $parameter->getType()->allowsNull()]
+            ! $type->isBuiltin() ?
+                [$type->getName(), false, $type->allowsNull()] :
+                [false, $type->getName(), $type->allowsNull()]
             ) : [false, false, false];
 
             $param = [
@@ -215,11 +201,11 @@ class EmbeddedCall
                 'type' => $type,
                 'name' => $parameter->getName(),
                 'nullable' => $nullable,
-                'value' => null
+                'value' => null,
+                'isVariadic' => $parameter->isVariadic()
             ];
 
             if ($parameter->isDefaultValueAvailable()) {
-
                 $param['default'] = $parameter->getDefaultValue();
             }
 
@@ -230,32 +216,37 @@ class EmbeddedCall
     }
 
     /**
-     * To prepare parameters before call
+     * To prepare parameters before call.
      */
-    protected function toPrepareParameters () {
-
+    protected function toPrepareParameters()
+    {
         foreach ($this->parameters as $key => $parameter) {
-
             if ($parameter['class'] && isset($this->arguments[$parameter['class']])) {
 
                 $this->send_parameters[] = $this->arguments[$parameter['class']];
+                unset($this->arguments[$parameter['class']]);
 
-            } else if (isset($this->arguments[$key])) {
+            } elseif (isset($this->arguments[$key])) {
 
                 $this->send_parameters[] = $this->arguments[$key];
+                unset($this->arguments[$key]);
 
-            } else if (isset($this->arguments[$parameter['name']])) {
+            } elseif (isset($this->arguments[$parameter['name']])) {
 
                 $this->send_parameters[] = $this->arguments[$parameter['name']];
+                unset($this->arguments[$parameter['name']]);
 
-            } else if ($parameter['class']) {
-
+            } elseif ($parameter['class']) {
                 $this->send_parameters[] = $this->makeByClass($parameter, $key);
-
+            } elseif ($parameter['isVariadic']) {
+                $m = $this->makeByName($parameter, $key);
+                if (is_array($m)) $this->send_parameters = array_merge($this->send_parameters, array_values($m));
             } else {
-
                 $this->send_parameters[] = $this->makeByName($parameter, $key);
             }
+        }
+        foreach ($this->arguments as $k => $argument) {
+            if (is_numeric($k)) $this->send_parameters[] = $argument;
         }
     }
 
@@ -265,8 +256,9 @@ class EmbeddedCall
     protected function setGeneratorProps(EmbeddedCallExtend $class)
     {
         foreach (get_object_vars($class) as $key => $get_object_var) {
-            if ($key == 'ARGS') { $class->{$key} = $this->arguments; }
-            else if (is_string($get_object_var) && isset($this->arguments[$get_object_var])) {
+            if ($key == 'ARGS') {
+                $class->{$key} = $this->arguments;
+            } elseif (is_string($get_object_var) && isset($this->arguments[$get_object_var])) {
                 //$class->{$key} = $this->arguments[$get_object_var];
                 $class->set($key, $this->arguments[$get_object_var]);
             }
@@ -281,58 +273,45 @@ class EmbeddedCall
     protected function makeByClass(array $params, int $key)
     {
         if (app()->has($params['class'])) {
-
             $class = app($params['class']);
 
             if ($class instanceof EmbeddedCallExtend) {
-
                 $this->setGeneratorProps($class);
             }
 
             return $class;
-
-        } else if (class_exists($params['class'])) {
-
+        } elseif (class_exists($params['class'])) {
             if (request()->hasFile($params['name'])) {
-
                 $r_data = request()->file($params['name']);
-
-            } else if (request()->has($params['name'])) {
-
+            } elseif (request()->has($params['name'])) {
                 $r_data = request()->get($params['name']);
-
-            } else if (isset($this->route_params[$params['name']])) {
-
+            } elseif (isset($this->route_params[$params['name']])) {
                 $r_data = $this->route_params[$params['name']];
             }
 
-            $make_params = !!$this->event_result ? ['resource' => $this->event_result] : [];
+            $make_params = (bool) $this->event_result ? ['resource' => $this->event_result] : [];
 
             $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class'], $make_params);
 
             if ($class instanceof EmbeddedCallExtend) {
-
                 $this->setGeneratorProps($class);
             }
 
             $this->parameters[$key]['class'] = $class;
 
             if ($class instanceof JsonResource) {
-
                 $this->resource = $class;
             }
 
             if (app('events')->hasListeners($params['class'])) {
-
                 $this->event_result = resulted_event($class);
             }
 
             if ($class instanceof Model && isset($r_data) && is_numeric($r_data)) {
-
                 $find_class = $class->find($r_data);
                 if ($params['nullable']) {
                     $class = $find_class;
-                } else if ($find_class) {
+                } elseif ($find_class) {
                     $class = $find_class;
                 }
             }
@@ -346,26 +325,18 @@ class EmbeddedCall
     /**
      * @param  array  $params
      * @param  int  $key
-     * @return string
+     * @return mixed
      */
     protected function makeByName(array $params, int $key)
     {
         if (app()->has($params['name'])) {
-
             return app($params['name']);
-
-        } else if (isset($this->route_params[$params['name']])) {
-
+        } elseif (isset($this->route_params[$params['name']])) {
             return $this->route_params[$params['name']];
-
-        } else if (request()->has($params['name'])) {
-
+        } elseif (request()->has($params['name'])) {
             return request($params['name']);
-
-        } else if (isset($params['default'])) {
-
+        } elseif (isset($params['default'])) {
             return $params['default'];
-
         }
 
         return null;
@@ -376,18 +347,13 @@ class EmbeddedCall
      * @return false|mixed
      * @throws \Throwable
      */
-    protected function throw (\Throwable $throwable) {
-
+    protected function throw(\Throwable $throwable)
+    {
         if (is_array($this->throw_event) && isset($this->throw_event[0]) && isset($this->throw_event[1])) {
-
             return call_user_func($this->throw_event, $throwable);
-
-        } else if ($this->throw_event instanceof \Closure) {
-
+        } elseif ($this->throw_event instanceof \Closure) {
             return ($this->throw_event)($throwable);
-
         } else {
-
             throw $throwable;
         }
     }

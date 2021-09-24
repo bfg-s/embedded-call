@@ -3,11 +3,11 @@
 namespace Bfg\EmbeddedCall;
 
 /**
- * Class EmbeddedCallExtend
+ * Class EmbeddedCallExtend.
  * @package Bfg\EmbeddedCall
  */
-class EmbeddedCallExtend {
-
+class EmbeddedCallExtend
+{
     /**
      * @var array
      */
@@ -32,11 +32,8 @@ class EmbeddedCallExtend {
     public function extend($class)
     {
         if (is_string($class)) {
-
             $this->extends[] = new $class;
-
-        } else if (is_object($class)) {
-
+        } elseif (is_object($class)) {
             $this->extends[] = $class;
         }
 
@@ -51,9 +48,7 @@ class EmbeddedCallExtend {
     public function __call($name, $arguments)
     {
         foreach ($this->extends as $extend) {
-
             if (method_exists($extend, $name)) {
-
                 return $extend->{$name}(...$arguments);
             }
         }

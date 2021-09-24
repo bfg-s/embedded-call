@@ -2,13 +2,13 @@
 
 namespace Bfg\EmbeddedCall\EmbeddedAttributes;
 
-use \Attribute;
+use Attribute;
 
 /**
- * Class Action
+ * Class Action.
  * @package Bfg\EmbeddedCall\EmbeddedAttributes
  */
-#[Attribute(Attribute::TARGET_METHOD|Attribute::TARGET_FUNCTION)]
+#[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_FUNCTION)]
 class Action
 {
     /**
@@ -18,8 +18,9 @@ class Action
      * @param  string|null  $resource
      */
     public function __construct(
-        public string|null $request = null,
-        public string|null $event = null,
-        public string|null $resource = null,
-    ) {}
+        public string | null $request = null,
+        public string | null $event = null,
+        public string | null $resource = null,
+    ) {
+    }
 }
