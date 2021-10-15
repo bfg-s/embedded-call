@@ -202,7 +202,7 @@ class EmbeddedCall
                 'name' => $parameter->getName(),
                 'nullable' => $nullable,
                 'value' => null,
-                'isVariadic' => $parameter->isVariadic()
+                'isVariadic' => $parameter->isVariadic(),
             ];
 
             if ($parameter->isDefaultValueAvailable()) {
@@ -222,31 +222,29 @@ class EmbeddedCall
     {
         foreach ($this->parameters as $key => $parameter) {
             if ($parameter['class'] && isset($this->arguments[$parameter['class']])) {
-
                 $this->send_parameters[] = $this->arguments[$parameter['class']];
                 unset($this->arguments[$parameter['class']]);
-
             } elseif (isset($this->arguments[$key])) {
-
                 $this->send_parameters[] = $this->arguments[$key];
                 unset($this->arguments[$key]);
-
             } elseif (isset($this->arguments[$parameter['name']])) {
-
                 $this->send_parameters[] = $this->arguments[$parameter['name']];
                 unset($this->arguments[$parameter['name']]);
-
             } elseif ($parameter['class']) {
                 $this->send_parameters[] = $this->makeByClass($parameter, $key);
             } elseif ($parameter['isVariadic']) {
                 $m = $this->makeByName($parameter, $key);
-                if (is_array($m)) $this->send_parameters = array_merge($this->send_parameters, array_values($m));
+                if (is_array($m)) {
+                    $this->send_parameters = array_merge($this->send_parameters, array_values($m));
+                }
             } else {
                 $this->send_parameters[] = $this->makeByName($parameter, $key);
             }
         }
         foreach ($this->arguments as $k => $argument) {
-            if (is_numeric($k)) $this->send_parameters[] = $argument;
+            if (is_numeric($k)) {
+                $this->send_parameters[] = $argument;
+            }
         }
     }
 
