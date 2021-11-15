@@ -251,7 +251,7 @@ class EmbeddedCall
     /**
      * @param  EmbeddedCallExtend  $class
      */
-    protected function setGeneratorProps(EmbeddedCallExtend $class)
+    protected function setGeneratorProps($class)
     {
         foreach (get_object_vars($class) as $key => $get_object_var) {
             if ($key == 'ARGS') {
