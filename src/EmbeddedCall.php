@@ -273,12 +273,18 @@ class EmbeddedCall
         if (app()->has($params['class'])) {
             $class = app($params['class']);
 
-            if ($class instanceof EmbeddedCallExtend) {
+            if (
+                $class instanceof EmbeddedCallExtend ||
+                (
+                    class_exists(\Lar\Developer\Generator::class) &&
+                    $class instanceof \Lar\Developer\Generator
+                )
+            ) {
                 $this->setGeneratorProps($class);
             }
 
             return $class;
-        } elseif (class_exists($params['class'])) {
+        } elseif (class_exists($params['class']) && $params['class'] != \Illuminate\Database\Eloquent\Model::class) {
             if (request()->hasFile($params['name'])) {
                 $r_data = request()->file($params['name']);
             } elseif (request()->has($params['name'])) {
@@ -291,7 +297,13 @@ class EmbeddedCall
 
             $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class'], $make_params);
 
-            if ($class instanceof EmbeddedCallExtend) {
+            if (
+                $class instanceof EmbeddedCallExtend ||
+                (
+                    class_exists(\Lar\Developer\Generator::class) &&
+                    $class instanceof \Lar\Developer\Generator
+                )
+            ) {
                 $this->setGeneratorProps($class);
             }
 
