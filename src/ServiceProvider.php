@@ -2,36 +2,28 @@
 
 namespace Bfg\EmbeddedCall;
 
-use Bfg\Installer\Providers\InstalledProvider;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 /**
  * Class ServiceProvider.
  * @package Bfg\EmbeddedCall
  */
-class ServiceProvider extends InstalledProvider
+class ServiceProvider extends IlluminateServiceProvider
 {
     /**
-     * Set as installed by default.
-     * @var bool
-     */
-    public bool $installed = true;
-
-    /**
-     * Executed when the provider is registered
-     * and the extension is installed.
+     * Register route settings.
      * @return void
      */
-    public function installed(): void
+    public function register()
     {
         //
     }
 
     /**
-     * Executed when the provider run method
-     * "boot" and the extension is installed.
+     * Bootstrap services.
      * @return void
      */
-    public function run(): void
+    public function boot()
     {
         //
     }

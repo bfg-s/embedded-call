@@ -11,8 +11,7 @@
     ],
     "prefer-stable": true,
     "require": {
-        "php": ">=8.0.0",
-        "bfg/installer": "*"
+        "php": ">=8.0.0"
     },
     "require-dev": {},
     "autoload": {
