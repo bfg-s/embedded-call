@@ -274,11 +274,7 @@ class EmbeddedCall
             $class = app($params['class']);
 
             if (
-                $class instanceof EmbeddedCallExtend ||
-                (
-                    class_exists(\Lar\Developer\Generator::class) &&
-                    $class instanceof \Lar\Developer\Generator
-                )
+                $class instanceof EmbeddedCallExtend
             ) {
                 $this->setGeneratorProps($class);
             }
@@ -298,11 +294,7 @@ class EmbeddedCall
             $class = isset($r_data) && is_object($r_data) ? $r_data : app($params['class'], $make_params);
 
             if (
-                $class instanceof EmbeddedCallExtend ||
-                (
-                    class_exists(\Lar\Developer\Generator::class) &&
-                    $class instanceof \Lar\Developer\Generator
-                )
+                $class instanceof EmbeddedCallExtend
             ) {
                 $this->setGeneratorProps($class);
             }
@@ -380,7 +372,7 @@ class EmbeddedCall
             return $this->throw($throwable);
         }
 
-        return $result ?: ($this->resource ?: null);
+        return $result !== null ? $result : ($this->resource ?: $result);
     }
 
     /**
